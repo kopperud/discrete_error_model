@@ -2,7 +2,7 @@ library(ape)
 library(phytools)
 
 set.seed(123)
-n_traits <- 10
+n_traits <- 50
 n_trees <- 10
 
 cat("Reading in trees. \n")
@@ -30,13 +30,19 @@ for (i in 1:n_trees){
   tip_states_m <- matrix(NA, nrow = n_tips, ncol = n_traits)
   for (j in 1:n_traits){
     h <- sim.history(trees[[i]], Q, message = FALSE)
-    histories[[j]] <- h
+    #histories[[j]] <- h
     tip_states_m[,j] <- as.numeric(unname(h$states))-1
     h2[[j]] <- h
   }
   tip_states[[i]] <- tip_states_m
   histories[[i]] <- h2
 }
+
+number_of_state_changes <- list()
+for (j in 1:n_traits){
+  number_of_state_changes[[j]] <- sum(sapply(histories[[1]][[j]]$maps, function(x) length(x)-1))
+}
+sum(unlist(number_of_state_changes)) / n_traits
 
 ## Add observation error
 cat("Adding observation error. \n")
@@ -45,10 +51,11 @@ n_beta <- length(betas)
 
 foo <- function(tip_states, beta1){
   tip_states_with_error <- tip_states
-  for (i in 1:n_trees){
-    for (j in 1:n_traits){
+  for (i in 1:nrow(tip_states)){
+    for (j in 1:ncol(tip_states)){
       r <- runif(1,0,1)
-      if (r > beta1){
+      if (r < beta1){
+        #cat(".")
         tip_states_with_error[i,j] <- sample.int(2,1)-1
       }
     }
