@@ -1,4 +1,3 @@
-
 tree <- args[1]
 beta <- args[2]
 
@@ -31,10 +30,11 @@ rates_morpho := fnDiscretizeGamma( alpha_morpho, alpha_morpho, 4 )
 #Moves on the parameters to the Gamma distribution.
 moves.append( mvScale(alpha_morpho, lambda=1, weight=2.0) )
 
-phyMorpho ~ dnPhyloCTMC(tree=phylogeny, siteRates=rates_morpho, Q=Q_morpho, type="Standard")
-#beta ~ dnBeta(1, 50)
-#moves.append( ## move on beta
-#phyMorpho ~ dnPhyloCTMC(tree=phylogeny, siteRates=rates_morpho, Q=Q_morpho, observationError = beta, type="Standard")
+#observation_error ~ dnBeta(1, 50)
+observation_error ~ dnUniform(0.0, 0.50)
+observation_error_freq <- [0.5, 0.5]
+moves.append( mvScale(observation_error, lambda = 1, weight = 2.0) ) ## move on beta
+phyMorpho ~ dnPhyloCTMC(tree=phylogeny, siteRates=rates_morpho, Q=Q_morpho, observationErrorProbability = observation_error, observationErrorFrequencies = observation_error_freq, type="Standard")
 phyMorpho.clamp(morpho)
 
 mymodel = model(phylogeny)
